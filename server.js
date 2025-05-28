@@ -308,6 +308,17 @@ app.get('/api/ia/mejores-proveedores-cotizaciones', async (req, res) => {
 
 
 
+app.get('/descargar-backup', (req, res) => {
+  const backupPath = path.join(__dirname, 'backup.sql');
+  
+  if (fs.existsSync(backupPath)) {
+    res.download(backupPath);
+  } else {
+    res.status(404).send('Archivo de backup no encontrado');
+  }
+});
+
+
 
 
 
