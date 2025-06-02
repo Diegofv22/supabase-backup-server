@@ -20,6 +20,15 @@ const poolerConfig = {
   database: 'postgres'
 };
 
+const directConfig = {
+  user: 'postgres',
+  password: 'AiiYSHmddKtHPHuS',
+  host: 'db.gahkulygjhtbgslnznzz.supabase.co', // Host directo
+  port: '5432',
+  database: 'postgres'
+};
+
+
 
 // Habilitar CORS para todas las solicitudes
 app.use(cors());
@@ -30,41 +39,45 @@ app.use(express.json({ limit: '10mb' })); // o más si las huellas son grandes
 
 app.post('/restore', (req, res) => {
   const backupPath = path.join(__dirname, 'backup.sql');
-  
+
   if (!fs.existsSync(backupPath)) {
     return res.status(400).json({ error: 'Archivo backup.sql no encontrado' });
   }
 
   const restoreCommand = [
     'psql',
-    `--username=${poolerConfig.user}`,
-    `--host=${poolerConfig.host}`,
-    `--port=${poolerConfig.port}`,
-    `--dbname=${poolerConfig.database}`,
+    `--username=${directConfig.user}`,
+    `--host=${directConfig.host}`,
+    `--port=${directConfig.port}`,
+    `--dbname=${directConfig.database}`,
     '--file=' + backupPath
   ].join(' ');
 
-  console.log('🔹 Ejecutando restore con pooler:', restoreCommand);
+  console.log('🔹 Ejecutando restore con host directo:', restoreCommand);
 
   const envVars = {
     ...process.env,
-    PGPASSWORD: poolerConfig.password,
+    PGPASSWORD: directConfig.password,
     PGSSLMODE: 'require'
   };
+
+  console.log('📁 Archivo de backup existe:', fs.existsSync(backupPath));
+  console.log('📄 Contenido del backup:', fs.readFileSync(backupPath, 'utf8').slice(0, 200)); // Mostrar un fragmento
 
   exec(restoreCommand, { env: envVars }, (error, stdout, stderr) => {
     if (error) {
       console.error('❌ Error en restore:', stderr);
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: 'Error al restaurar backup',
-        details: stderr 
+        details: stderr
       });
     }
-    
+
     console.log('✅ Restauración completada');
     res.json({ success: true, output: stdout });
   });
 });
+
 
 
 app.get('/backup', (req, res) => {
@@ -317,6 +330,17 @@ app.get('/descargar-backup', (req, res) => {
     res.status(404).send('Archivo de backup no encontrado');
   }
 });
+
+app.get('/verificar-psql', (req, res) => {
+  exec('psql --version', (error, stdout, stderr) => {
+    if (error) {
+      console.error('❌ Error verificando psql:', stderr);
+      return res.status(500).send('psql no disponible');
+    }
+    res.send(`✅ psql disponible: ${stdout}`);
+  });
+});
+
 
 
 
