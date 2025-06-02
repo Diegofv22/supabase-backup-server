@@ -44,25 +44,23 @@ app.post('/restore', (req, res) => {
     return res.status(400).json({ error: 'Archivo backup.sql no encontrado' });
   }
 
+  // 🔁 Usa el pooler
   const restoreCommand = [
     'psql',
-    `--username=${directConfig.user}`,
-    `--host=${directConfig.host}`,
-    `--port=${directConfig.port}`,
-    `--dbname=${directConfig.database}`,
+    `--username=${poolerConfig.user}`,
+    `--host=${poolerConfig.host}`,
+    `--port=${poolerConfig.port}`,
+    `--dbname=${poolerConfig.database}`,
     '--file=' + backupPath
   ].join(' ');
 
-  console.log('🔹 Ejecutando restore con host directo:', restoreCommand);
+  console.log('🔹 Ejecutando restore con pooler:', restoreCommand);
 
   const envVars = {
     ...process.env,
-    PGPASSWORD: directConfig.password,
+    PGPASSWORD: poolerConfig.password,
     PGSSLMODE: 'require'
   };
-
-  console.log('📁 Archivo de backup existe:', fs.existsSync(backupPath));
-  console.log('📄 Contenido del backup:', fs.readFileSync(backupPath, 'utf8').slice(0, 200)); // Mostrar un fragmento
 
   exec(restoreCommand, { env: envVars }, (error, stdout, stderr) => {
     if (error) {
@@ -77,6 +75,7 @@ app.post('/restore', (req, res) => {
     res.json({ success: true, output: stdout });
   });
 });
+
 
 
 
