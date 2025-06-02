@@ -20,13 +20,7 @@ const poolerConfig = {
   database: 'postgres'
 };
 
-const directConfig = {
-  user: 'postgres',
-  password: 'AiiYSHmddKtHPHuS',
-  host: 'db.gahkulygjhtbgslnznzz.supabase.co', // Host directo
-  port: '5432',
-  database: 'postgres'
-};
+
 
 
 
@@ -92,6 +86,8 @@ app.get('/backup', (req, res) => {
     '--format=plain',
     '--no-owner',
     '--no-privileges',
+    '--clean',          // 🔹 Agregado
+    '--if-exists',      // 🔹 Agregado
     '--file=' + backupPathFormatted
   ].join(' ');
 
@@ -120,6 +116,7 @@ app.get('/backup', (req, res) => {
     });
   });
 });
+
 // Ruta para respaldar la base de datos
 
 
